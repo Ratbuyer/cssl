@@ -5,9 +5,10 @@
 #include <time.h>
 #include <unistd.h>
 #include "skiplist.h"
+#include <time.h>
 
-#define LOAD_SIZE 100000
-#define RUN_SIZE 100000
+#define LOAD_SIZE 100000000
+#define RUN_SIZE 100000000
 
 // Operation types
 enum {
@@ -80,21 +81,46 @@ void ycsb_load_run_randint(const char *init_file, const char *txn_file,
     printf("Loaded %lu more keys\n", count);
     
     printf("here\n");
+    
+    ////////////////// Load Phase //////////////////
+    
+    int counter = 0;
+    
+    struct timespec start, end;
+    
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     _CSSL_SkipList *slist = createSkipList(9, 5);
     for (size_t i = 0; i < LOAD_SIZE; i++) {
-        insertElement(slist, (uint32_t)init_keys[i]);
+    	uint32_t key = (uint32_t)(init_keys[i] & 0xFFFFFFFF);
+     	key = key / 1000;
+      	// printf("Inserting key: %u\n", key);
+        insertElement(slist, key);
     }
+    
+    clock_gettime(CLOCK_MONOTONIC, &end); 
+    
+    long elapsed_us = (end.tv_sec - start.tv_sec) * 1000000L + (end.tv_nsec - start.tv_nsec) / 1000;
+    
+    double throughput = (double)LOAD_SIZE / (elapsed_us);
+    
+    printf("Load throughput: %f ops/us\n", throughput);
+    
     printf("Load complete.\n");
 
     for (size_t i = 0; i < RUN_SIZE; i++) {
+    	uint32_t key = (uint32_t)(keys[i] & 0xFFFFFFFF);
+     	key = key / 1000;
         if (ops[i] == OP_INSERT) {
-            insertElement(slist, keys[i]);
+            insertElement(slist, key);
         } else if (ops[i] == OP_READ) {
-            searchElement(slist, keys[i]);
+            searchElement(slist, key) == INT_MAX ? : counter++;
         }
     }
+
     printf("Run complete.\n");
+    
+    printf("Number of successful reads: %d\n", counter);
 }
 
 int main(int argc, char **argv) {
