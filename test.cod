@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <string.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+
+#include "skiplist.h"
+
+int main() {
+	
+	_CSSL_SkipList* slist = createSkipList(9, 5);
+	
+	for (uint32_t i = 0; i < 1000; i++) {
+		insertElement(slist, i);
+	}
+	
+	for (uint32_t i = 1000; i < 1200; i++) {
+		insertElement(slist, i);
+	}
+	
+	int counter = 0;
+	
+	for (uint32_t i = 0; i < 1200; i++) {
+		searchElement(slist, i) == i ? counter++ : 0;
+	}
+	
+	printf("counter: %d\n", counter);
+	
+	return 0;
+}

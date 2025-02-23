@@ -7,8 +7,8 @@
 #include "skiplist.h"
 #include <time.h>
 
-#define LOAD_SIZE 1000
-#define RUN_SIZE 1000
+#define LOAD_SIZE 100000000
+#define RUN_SIZE 100000000
 
 // Operation types
 enum {
@@ -19,6 +19,10 @@ enum {
     OP_SCAN_END,
     OP_DELETE,
 };
+
+convert(uint64_t key) {
+	return (uint32_t)(key & 0x0FFFFFFF);
+}
 
 void ycsb_load_run_randint(const char *init_file, const char *txn_file,
                            uint64_t *init_keys, uint64_t *keys,
@@ -90,12 +94,17 @@ void ycsb_load_run_randint(const char *init_file, const char *txn_file,
     
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    _CSSL_SkipList *slist = createSkipList(5, 5);
+    _CSSL_SkipList *slist = createSkipList(20, 5);
     for (size_t i = 0; i < LOAD_SIZE; i++) {
-    	uint32_t key = (uint32_t)(init_keys[i] & 0xFFFFFFFF);
-     	key = key / 10000000;
-      	// printf("Inserting key: %u\n", key);
-        insertElement(slist, i);
+    	uint32_t key = convert(init_keys[i]);
+     	
+      	if (key >= INT_MAX) {
+			printf("Key too large: %u\n", key);
+			printf("INT_MAX: %u\n", INT_MAX);
+			return;
+		}
+
+        insertElement(slist, key);
     }
     
     clock_gettime(CLOCK_MONOTONIC, &end); 
@@ -109,15 +118,12 @@ void ycsb_load_run_randint(const char *init_file, const char *txn_file,
     printf("Load complete.\n");
 
     for (size_t i = 0; i < RUN_SIZE; i++) {
-    	uint32_t key = (uint32_t)(keys[i] & 0xFFFFFFFF);
-     	key = key / 10000000;
+    	uint32_t key = convert(keys[i]);
         if (ops[i] == OP_INSERT) {
-            insertElement(slist, i);
+            insertElement(slist, key);
         } else if (ops[i] == OP_READ) {
-            // searchElement(slist, i) == INT_MAX ? : counter++;
+            searchElement(slist, key) == key ? counter++ : 0;
         }
-        
-        searchElement(slist, i) == i ? : counter++;
     }
 
     printf("Run complete.\n");
