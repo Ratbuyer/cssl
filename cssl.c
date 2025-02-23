@@ -42,7 +42,7 @@ void shuffle_array(uint32_t* arr, uint32_t size) {
   }
 }
 
-int main( int argc, const char* argv[] ) {
+int mai( int argc, const char* argv[] ) {
   if (argc != 3) {
     printf("Usage: %s num_elements 0|1 (0=dense, 1=sparse)\n", argv[0]);
     return 1;

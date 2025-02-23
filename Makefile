@@ -16,7 +16,11 @@ HEADERS = $(wildcard *.h)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	
+ycsb:
+	$(CC) $(CFLAGS) $(LIBS) skiplist.h skiplist.c ycsb.c -o ycsb
 
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
+	-rm -f ycsb
